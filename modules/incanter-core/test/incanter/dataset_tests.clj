@@ -97,5 +97,6 @@
                            [1 :x1 5]
                            [2 :x1 7]
                            [1 :x2 6]
-                           [2 :x2 8]])]
-    (is (= (melt dset :id) expected))))
+                           [2 :x2 8]])
+        melted (melt dset :id)]
+    (is (= (sel melted :cols :value) (sel expected :cols :value)))))

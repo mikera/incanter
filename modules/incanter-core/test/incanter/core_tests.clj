@@ -558,7 +558,7 @@
 
 (deftest sel-filter-test
   (let [m (matrix [[110 110]])]
-    (is (= m (sel m :filter-fn (fn [[c1 c2]] (= c1 c2)))))))
+    (is (= m (sel m :filter-fn (fn [v] (= (m/mget v 0) (m/mget v 1))))))))
 
 (deftest group-on-test
   (let [m (matrix [[1 0] [2 1]])]

@@ -3000,8 +3000,6 @@
 ;;use clojure sorting: sort-by, sorted-map-by, etc.
 (defn- sort-map [m] (into {} (sort kv-compare m)))
 
-
-
 (defn kendalls-tau
   "
   http://en.wikipedia.org/wiki/Kendall_tau_rank_correlation_coefficient
@@ -3013,7 +3011,7 @@
   [a b]
   {:pre [(= (count a) (count b))]}
     (let [n (count a)
-          ranked (reverse (sort-map (zipmap a b)))
+          ranked (reverse (apply sorted-map-by compare (interleave a b)))
           ;;dcd is the meat of the calculation, the difference between the doncordant and discordant pairs
           dcd (second
                 (reduce
