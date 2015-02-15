@@ -546,4 +546,21 @@
       (arithmetic-test)
       (det-test)
       (matrix-map-test)
-      (pow-test))))
+      (pow-test)))
+
+  (is (= (pow [1 2 3] 2) [1.0 4.0 9.0]))
+  (is (= (pow [[1 2 3]] 2) [[1.0 4.0 9.0]]))
+  (is (= (pow (matrix [[1 2 3] [4 5 6]]) 2) (matrix [[1.0 4.0 9.0] [16.0 25.0 36.0]])))
+  (is (= (pow (matrix [[1 2 3]]) 2) (matrix [[1.0 4.0 9.0]])))
+  (is (= (pow (matrix [1 2 3]) 2) (matrix [1.0 4.0 9.0])))
+  (is (= (pow (dataset [:a :b :c] [[1 2 3]]) 2) (dataset [:a :b :c] [[1.0 4.0 9.0]])))
+  )
+
+(deftest sel-filter-test
+  (let [m (matrix [[110 110]])]
+    (is (= m (sel m :filter-fn (fn [[c1 c2]] (= c1 c2)))))))
+
+(deftest group-on-test
+  (let [m (matrix [[1 0] [2 1]])]
+    (is (= [(matrix [[1 0]]) (matrix [[2 1]])] (group-on m 1)))))
+

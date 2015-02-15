@@ -91,11 +91,11 @@
   (let [dset (dataset  [:id :time :x1 :x2 ]
                        [[1 1 5 6]
                         [2 2 7 8]])
-        expected (dataset [:value :variable :id]
+        expected (dataset [:id :variable :value]
                           [[1 :time 1]
                            [2 :time 2]
-                           [5 :x1 1]
-                           [7 :x1 2]
-                           [6 :x2 1]
-                           [8 :x2 2]])]
+                           [1 :x1 5]
+                           [2 :x1 7]
+                           [1 :x2 6]
+                           [2 :x2 8]])]
     (is (= (melt dset :id) expected))))
