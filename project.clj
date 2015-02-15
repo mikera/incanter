@@ -30,8 +30,7 @@
         "modules/incanter-latex"
         "modules/incanter-excel"
         "modules/incanter-sql"
-        "modules/incanter-zoo"
-        "."]
+        "modules/incanter-zoo"]
   
   :modules {:dirs ["modules/incanter-core"
                    "modules/incanter-io"
@@ -42,8 +41,7 @@
                    "modules/incanter-latex"
                    "modules/incanter-excel"
                    "modules/incanter-sql"
-                   "modules/incanter-zoo"
-                   "."]
+                   "modules/incanter-zoo"]
             :subprocess false}
 	  
   :profiles {:dev {:resource-paths ["data"]}

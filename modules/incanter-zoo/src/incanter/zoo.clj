@@ -179,10 +179,9 @@
 (defn- zoo-simplify
   "Returns a vector if 1 row, else identity"
   [z]
-  (cond
-   (m/scalar? z) z
-   (= (nrow z) 1) ($ 0 :all z)
-   :else z))
+  (if (= (nrow z) 1)
+    ($ 0 :all z)
+    z))
 
 ;; I suspect this could be far better implemented using sel or such.
 (defn $$

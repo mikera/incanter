@@ -104,7 +104,7 @@
       ;; handle all other cases
       :else (let [lowest (find-lowest-precedence col)]
               (if (nil? lowest) ;; nothing to split
-                (map infix-to-prefix col)
+                col
                 ;; (a b c) bind a to hd, c to tl, and b to op
                 (let [[hd [op & tl]] (split-at lowest col)]
                 ;; recurse

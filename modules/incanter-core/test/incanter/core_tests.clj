@@ -459,35 +459,33 @@
                          [4556 5188 5820]
                          [6248 7114 7980]]))))
 
-(def ^:private test-mat-source [[39      10 ]
-                                [51      20 ]
-                                [60      30 ]
-                                [64      40 ]
-                                [73      50 ]
-                                [83      60 ]
-                                [90      70 ]
-                                [93      80 ]
-                                [99      90 ]
-                                [105     100]
-                                [110     110]
-                                [111     120]
-                                [113     130]
-                                [117     140]
-                                [120     150]
-                                [125     160]
-                                [130     170]
-                                [133     180]
-                                [133     190]
-                                [134     200]
-                                [138     210]
-                                [140     220]
-                                [145     230]
-                                [146     240]
-                                [148     250]])
-
 (defn arithmetic-test
   []
-  (let [test-mat (matrix test-mat-source)
+  (let [test-mat (matrix [[39      10 ]
+                          [51      20 ]
+                          [60      30 ]
+                          [64      40 ]
+                          [73      50 ]
+                          [83      60 ]
+                          [90      70 ]
+                          [93      80 ]
+                          [99      90 ]
+                          [105     100]
+                          [110     110]
+                          [111     120]
+                          [113     130]
+                          [117     140]
+                          [120     150]
+                          [125     160]
+                          [130     170]
+                          [133     180]
+                          [133     190]
+                          [134     200]
+                          [138     210]
+                          [140     220]
+                          [145     230]
+                          [146     240]
+                          [148     250]])
         x (sel test-mat :cols 0)
         y (sel test-mat :cols 1)]
     (testing "Calculate the sum of values in a vector or 1D matrix"
@@ -525,15 +523,6 @@
          (dataset [:a :b :c] [[1.0 4.0 9.0]]))))
 
 
-(defn sel-filter-test []
-  (let [m (matrix [[110 110]])
-        test-mat (matrix test-mat-source)]
-    (is (m/equals m (sel test-mat :filter-fn (fn [row] (= (first row) (second row))))))))
-
-(defn group-on-test []
-  (let [m (matrix [[1 0] [2 1]])]
-    (is (m/equals [(matrix [[1 0]]) (matrix [[2 1]])] (group-on m 1)))))
-
 (deftest compliance-test
   (doseq [impl [:clatrix :ndarray :persistent-vector :vectorz]]
     (set-current-implementation impl)
@@ -557,16 +546,21 @@
       (arithmetic-test)
       (det-test)
       (matrix-map-test)
-      (pow-test)
-      (sel-filter-test)
-      (group-on-test))))
+      (pow-test)))
 
-(deftest data-table-test
-  (let [table (data-table dataset1)]
-    (testing "creates JTable from dataset"
-      (is (= (type table) javax.swing.JTable)))
-    (testing "JTable has correct value at specified cell"
-      (let [row 1 col 2
-            cell-value (-> table (.getModel) (.getValueAt row col))
-            dataset-value ($ row col dataset1)]
-        (is (= cell-value dataset-value))))))
+  (is (= (pow [1 2 3] 2) [1.0 4.0 9.0]))
+  (is (= (pow [[1 2 3]] 2) [[1.0 4.0 9.0]]))
+  (is (= (pow (matrix [[1 2 3] [4 5 6]]) 2) (matrix [[1.0 4.0 9.0] [16.0 25.0 36.0]])))
+  (is (= (pow (matrix [[1 2 3]]) 2) (matrix [[1.0 4.0 9.0]])))
+  (is (= (pow (matrix [1 2 3]) 2) (matrix [1.0 4.0 9.0])))
+  (is (= (pow (dataset [:a :b :c] [[1 2 3]]) 2) (dataset [:a :b :c] [[1.0 4.0 9.0]])))
+  )
+
+(deftest sel-filter-test
+  (let [m (matrix [[110 110]])]
+    (is (= m (sel m :filter-fn (fn [v] (= (m/mget v 0) (m/mget v 1))))))))
+
+(deftest group-on-test
+  (let [m (matrix [[1 0] [2 1]])]
+    (is (= [(matrix [[1 0]]) (matrix [[2 1]])] (group-on m 1)))))
+

@@ -39,11 +39,6 @@
 (deftest select-all-returns-input
   (is (= ($ :all cars) cars)))
 
-(deftest test-sel-filter-fn
-  (let [ds (dataset [[110 110]])
-        test-ds (dataset [[105 100] [110 110] [111 120]])]
-    (is (= ds (sel test-ds :filter-fn (fn [row] (= (get row 0) (get row 1))))))))
-
 (testing "picks up data from scope"
   (with-data cars
     (is (= ($ :speed) [60 70]))
@@ -96,11 +91,12 @@
   (let [dset (dataset  [:id :time :x1 :x2 ]
                        [[1 1 5 6]
                         [2 2 7 8]])
-        expected (dataset [:id :value :variable ]
-                          [[1 1 :time]
-                           [2 2 :time]
-                           [1 5 :x1]
-                           [2 7 :x1]
-                           [1 6 :x2]
-                           [2 8 :x2]])]
-    (is (= (melt dset :id) expected))))
+        expected (dataset [:id :variable :value]
+                          [[1 :time 1]
+                           [2 :time 2]
+                           [1 :x1 5]
+                           [2 :x1 7]
+                           [1 :x2 6]
+                           [2 :x2 8]])
+        melted (melt dset :id)]
+    (is (= (sel melted :cols :value) (sel expected :cols :value)))))

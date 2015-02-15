@@ -59,11 +59,108 @@
                      [1000000114   1000.000117  1.00000011   1000000.000108]  [1000000098  1000.000099  1.000000101  1000000.000096]  [1000000046  1000.000039  1.000000045  1000000.000039]
                      [1000000051   1000.000046  1.000000042  1000000.000042]  [1000000110  1000.000105  1.000000108  1000000.000101]  [1000000056  1000.000057  1.000000056  1000000.00005]]))
 
+(def test-mat (matrix
+  [[39      10 ]
+   [51      20 ]
+   [60      30 ]
+   [64      40 ]
+   [73      50 ]
+   [83      60 ]
+   [90      70 ]
+   [93      80 ]
+   [99      90 ]
+   [105     100]
+   [110     110]
+   [111     120]
+   [113     130]
+   [117     140]
+   [120     150]
+   [125     160]
+   [130     170]
+   [133     180]
+   [133     190]
+   [134     200]
+   [138     210]
+   [140     220]
+   [145     230]
+   [146     240]
+   [148     250]]))
+
+(def x (sel test-mat :cols 0))
+(def y (sel test-mat :cols 1))
+
 (deftest variance-precision-test
   (is (within 1E-13 7.354943E-10 (variance ($ :sensitive precision-ds0))))
   (is (within 1E-19 7.315992E-16 (variance ($ :small precision-ds0))))
   (is (within 1E-13 9.697281E-9 (variance ($ :medium precision-ds0))))
   (is (within 0.001 736.7868 (variance ($ :large precision-ds0)))))
+
+(deftest sd-test
+  ;; calculate the standard deviation of a variable
+  (is (= (sd x) 31.6478013980961))
+  (is (= (map sd (m/slices dataset1)) [1.0 1.0 1.0 1.0])))
+
+(deftest covariance-test
+  ;; get the covariance between two variables
+  (is (= (Math/round (covariance x y)) 2263)))
+
+(deftest median-test
+  ;; calculate the median of a variable
+  (is (= (median x) 113.0))
+  (is (Double/isNaN (median []))))
+
+(deftest kurtosis-test
+  (let [test-sample [2.00 2.00 2.00 2.00 2.00
+                     2.00 2.00 2.00 2.00 2.00
+                     2.00 2.00 2.00 2.00 2.00
+                     2.00 3.00 3.00 3.00 3.00
+                     3.00 3.00 3.00 3.00 3.00
+                     3.00 3.00 3.00 3.00 3.00
+                     3.00 3.00 3.00 3.00 3.00
+                     3.00 3.00 3.00 3.00 3.00
+                     3.00 3.00 3.00 3.00 3.00
+                     3.00 3.00 3.00 3.00 3.00
+                     3.00 3.00 3.00 3.00 3.00
+                     3.00 3.00 3.00 3.00 3.00
+                     3.00 3.00 3.00 3.00 3.00
+                     3.00 3.00 3.00 3.00 3.00
+                     3.00 3.00 3.00 3.00 3.00
+                     3.00 3.00 3.00 3.00 3.00
+                     3.00 3.00 4.00 4.00 4.00
+                     4.00 4.00 4.00 4.00 4.00
+                     4.00 4.00 4.00 4.00 4.00
+                     4.00 4.00 4.00 4.00 2.00]]
+    (testing "correctness of result"
+      (is (= -0.11735294117647133 (kurtosis test-sample))))
+    (testing "invariance of calculation"
+      (let [kurtosis-diff (- (kurtosis (map (partial * 10) test-sample))
+                            (kurtosis test-sample))]
+        (is (< kurtosis-diff 1e-15))))
+    ))
+
+(deftest sample-tests
+  ;; test sample function
+  (is (not= (sample (range 10) :replacement false) (range 10)))
+  (is (= (count (sample (range 10))) 10))
+  (is (= (count (sample (range 10) :size 5)) 5))
+  (is (= (count (sample (range 10) :size 5 :replacement false)) 5))
+  (is (= (count (sample (range 10) :replacement false)) (count (range 10))))
+  (is (= (into #{} (sample (range 10) :replacement false)) (into #{} (range 10))))
+  (is (= (nrow (sample test-mat :size 3)) 3))
+  (is (= (nrow (sample dataset1 :size 3)) 3)))
+
+(deftest sample-mean-test
+ (is (= 3.0 
+      (mean [2 3 4]))))
+
+(deftest stdev-test
+ (is (= 2.138089935299395 
+      (sd [2 4 4 4 5 5 7 9]))))
+
+(deftest simple-regresssion-tests
+ (let [r (simple-regression [2 4] [1 3])]
+  (is (= 3.0
+	 (predict r 2)))))	 
 
 (deftest odds-ratio-test
   (let [p1 9/10
@@ -157,13 +254,11 @@
 (defn sd-test [m x]
   ;; calculate the standard deviation of a variable
   (is (= (sd x) 31.6478013980961))
-  (is (= (map sd m) [1.0 1.0 1.0 1.0]))
-  (is (= 2.138089935299395 (sd [2 4 4 4 5 5 7 9]))))
+  (is (= (map sd m) [1.0 1.0 1.0 1.0])))
 
 (defn median-test [x]
   ;; calculate the median of a variable
-  (is (= (median x) 113.0))
-  (is (Double/isNaN (median []))))
+  (is (= (median x) 113.0)))
 
 (defn covariance-test [x y]
   ;; get the covariance between two variables
@@ -237,35 +332,6 @@
   (is (= 2/5
 	 (normalized-kendall-tau-distance [1 2 3 4 5]
 					  [3 4 1 2 5]))))
-
-(defn kurtosis-test []
-  (let [test-sample [2.00 2.00 2.00 2.00 2.00
-                     2.00 2.00 2.00 2.00 2.00
-                     2.00 2.00 2.00 2.00 2.00
-                     2.00 3.00 3.00 3.00 3.00
-                     3.00 3.00 3.00 3.00 3.00
-                     3.00 3.00 3.00 3.00 3.00
-                     3.00 3.00 3.00 3.00 3.00
-                     3.00 3.00 3.00 3.00 3.00
-                     3.00 3.00 3.00 3.00 3.00
-                     3.00 3.00 3.00 3.00 3.00
-                     3.00 3.00 3.00 3.00 3.00
-                     3.00 3.00 3.00 3.00 3.00
-                     3.00 3.00 3.00 3.00 3.00
-                     3.00 3.00 3.00 3.00 3.00
-                     3.00 3.00 3.00 3.00 3.00
-                     3.00 3.00 3.00 3.00 3.00
-                     3.00 3.00 4.00 4.00 4.00
-                     4.00 4.00 4.00 4.00 4.00
-                     4.00 4.00 4.00 4.00 4.00
-                     4.00 4.00 4.00 4.00 2.00]]
-    (testing "correctness of result"
-      (is (= -0.11735294117647133 (kurtosis test-sample))))
-    (testing "invariance of calculation"
-      (let [kurtosis-diff (- (kurtosis (map (partial * 10) test-sample))
-                             (kurtosis test-sample))]
-        (is (< kurtosis-diff 1e-15))))
-    ))
 
 (defn gamma-coefficient-test []
   (is (= 1
@@ -401,7 +467,6 @@
       (kendalls-tau-test)
       (concordancy-test)
       (kendalls-tau-distance-test)
-      (kurtosis-test)
       (gamma-coefficient-test)
       (euclid-test)
       (manhattan-test)

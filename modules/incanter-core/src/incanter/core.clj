@@ -48,7 +48,7 @@
        :doc "This variable is bound to a dataset when the with-data macro is used.
               functions like $ and $where can use $data as a default argument."}
      $data nil)
-(declare to-list to-vector vectorize dataset col-names to-matrix bind-rows)
+(declare to-list to-vector vectorize dataset col-names to-matrix)
 
 (defn set-current-implementation [imp]
   "Sets current matrix implementation"
@@ -109,37 +109,21 @@
       (.contains (str (type obj)) "processing.core.PApplet") :sketch
       :else (type obj))))
 
-(defmulti nrow
+(defn ^Integer nrow
   "Returns the number of rows in the given matrix. Equivalent to R's nrow function."
-  dispatch)
+  ([mat]
+     (cond
+      (matrix? mat) (m/row-count mat)
+      (dataset? mat) (m/row-count mat)
+      (coll? mat) (count mat))))
 
-(defmethod nrow ::dataset
-  [ds] (m/row-count ds))
-
-(defmethod nrow ::matrix
-  [m] (m/row-count m))
-
-(defmethod nrow ::vector
-  [v] (m/row-count v))
-
-(defmethod nrow ::coll
-  [c] (count c))
-
-(defmulti ncol
+(defn ^Integer ncol
   "Returns the number of columns in the given matrix. Equivalent to R's ncol function."
-  dispatch)
-
-(defmethod ncol ::dataset
-  [ds] (m/column-count ds))
-
-(defmethod ncol ::matrix
-  [m] (m/column-count m))
-
-(defmethod ncol ::coll
-  [c] 1)
-
-(defmethod ncol ::vector
-  [v] 1)
+  ([mat]
+   (cond
+     (matrix? mat) (m/column-count mat)
+     (dataset? mat) (m/column-count mat)
+     (coll? mat) 1 )))
 
 (defn ^:deprecated dim
   "Returns a vector with the number of rows and columns of the given matrix.
@@ -287,22 +271,22 @@
           all-cols? (or (true? cols) (= cols :all) (= all :all))]
       (cond
         (and (number? rows) (number? cols))
-          (nth (nth lst rows) cols)
+          (m/mget (nth lst rows) cols)
         (and all-rows? (coll? cols))
-          (map (fn [r] (map #(nth r %) cols)) lst)
+          (map (fn [r] (map #(m/mget r %) cols)) lst)
         (and all-rows? (number? cols))
-          (map #(nth % cols) lst)
+          (map #(m/mget % cols) lst)
         (and (coll? rows) (number? cols))
-          (map #(nth % cols)
+          (map #(m/mget % cols)
                (map #(nth lst %) rows))
         (and (coll? rows) all-cols?)
           (map #(nth lst %) rows)
         (and (number? rows) all-cols?)
           (nth lst rows)
         (and (number? rows) (coll? cols))
-          (map #(nth (nth lst rows) %) cols)
+          (map #(m/mget (nth lst rows) %) cols)
         (and (coll? rows) (coll? cols))
-          (map (fn [r] (map #(nth r %) cols))
+          (map (fn [r] (map #(m/mget r %) cols))
                (map #(nth lst %) rows))
         (and all-rows? all-cols?)
           lst))))
@@ -323,7 +307,7 @@
                 except-cols (except-for (m/column-count mat) except-cols)
                 all all
                 :else :all)
-         mat (if (nil? filter-fn) mat (apply bind-rows (filter filter-fn mat)))]
+         mat (if (nil? filter-fn) mat (matrix (filter filter-fn mat)))]
      (matrix (m/select mat rows cols)))))
 
 (prefer-method sel [::matrix true] [java.util.List true])
@@ -1404,7 +1388,7 @@
 
 
 (defmethod sel [::dataset true]
-  ([data & {:keys [rows cols except-rows except-cols filter-fn all]}]
+  ([data & {:keys [rows cols except-rows except-cols filter all]}]
      (let [except-cols (cond
                         (nil? except-cols) except-cols
                         (coll? except-cols) except-cols
@@ -1441,9 +1425,9 @@
               :else cols)
            res (-> (ds/select-rows data r)
                    (ds/select-columns c))
-           res (if-not (nil? filter-fn)
+           res (if-not (nil? filter)
                  (->> (ds/row-maps res)
-                      (clojure.core/filter filter-fn)
+                      (clojure.core/filter filter)
                       (dataset (ds/column-names res)))
                  res)]
 
@@ -2565,16 +2549,6 @@
 ;; VIEW METHODS
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(defn data-table
-  "Creates a javax.swing.JTable given an Incanter dataset."
-  ([data]
-   (let [col-names (ds/column-names data)
-         column-vals (map (fn [row] (map #(row %) col-names)) (ds/row-maps data))
-         table-model (javax.swing.table.DefaultTableModel.
-                       (java.util.Vector. (map #(java.util.Vector. %) column-vals))
-                       (java.util.Vector. col-names))]
-     (javax.swing.JTable. table-model))))
-
 (defmulti view
   "
   This is a general 'view' function. When given an Incanter matrix/dataset
@@ -2658,7 +2632,14 @@
 
 (defmethod view ::dataset
   ([obj & options]
-   (view (data-table obj))))
+     (let [col-names  (ds/column-names obj)
+           rows (m/rows obj)]
+       (doto (JFrame. "Incanter Dataset")
+         (.add (JScrollPane. (JTable.
+                              (Vector. (map #(Vector. %) rows))
+                              (Vector. col-names))))
+         (.setSize 400 600)
+         (.setVisible true)))))
 
 (defmethod view javax.swing.JTable
   ([obj & options]
@@ -2690,6 +2671,19 @@
             (.browse (java.net.URI. url)))
         url)
       (catch ClassNotFoundException e nil))))
+
+
+(defn data-table
+"Creates a javax.swing.JTable given an Incanter dataset."
+  ([data]
+   (let [col-names (ds/column-names data)
+         column-vals (map (fn [row] (map #(row %) col-names)) (ds/row-maps data))
+         table-model (javax.swing.table.DefaultTableModel.
+                      (java.util.Vector. (map #(java.util.Vector. %) column-vals))
+                      (java.util.Vector. col-names))]
+     (javax.swing.JTable. table-model))))
+
+
 
 (defmulti set-data
   "
