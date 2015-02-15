@@ -9,7 +9,7 @@
   :min-lein-version "2.0.0"
   :dependencies [[incanter/incanter-io "1.9.1-SNAPSHOT"]
                  [org.clojure/clojure "1.6.0"]
-                 [clj-time "0.6.0"
+                 [clj-time "0.9.0"
                   :exclusions [org.clojure/clojure
                                org.clojure/clojure-contrib]]]
   :profiles {:dev {:dependencies [[clatrix "0.4.0" :exclusions [org.clojure/clojure]]

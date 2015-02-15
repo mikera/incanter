@@ -9,5 +9,5 @@
   :min-lein-version "2.0.0"
   :dependencies [[incanter/incanter-core "1.9.1-SNAPSHOT"]
                  [org.clojure/clojure "1.6.0"]
-                 [org.apache.poi/poi-ooxml "3.9"]]
+                 [org.apache.poi/poi-ooxml "3.11"]]
   )
