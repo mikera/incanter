@@ -193,3 +193,9 @@ h2. Incanter dependencies
 * "ClojureQL":http://clojureql.org/
 * "Batik SVG Toolkit":https://xmlgraphics.apache.org/batik/
 
+h2. Note on licensing
+
+Incanter is provided under the terms of the EPL v.1.0. 
+
+Some of the dependencies are under different licenses (e.g. LGPL v3.0 for vectorz-clj). If you build and distribute a solution that includes these libraries in binary form, then you will need to comply with the terms of the relevant licenses.
+
