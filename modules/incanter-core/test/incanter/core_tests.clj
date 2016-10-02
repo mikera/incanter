@@ -20,7 +20,8 @@
 ;; (run-tests 'incanter.tests.core-test-cases)
 
 (ns incanter.core-tests
-  (:require [clojure.core.matrix :as m])
+  (:require [clojure.core.matrix :as m]
+            [clojure.core.matrix.dataset :as ds])
   (:use  clojure.test
          (incanter core)))
 
@@ -527,8 +528,10 @@
 
 (defn sel-filter-test []
   (let [m (matrix [[110 110]])
-        test-mat (matrix test-mat-source)]
-    (is (m/equals m (sel test-mat :filter-fn (fn [row] (= (first row) (second row))))))))
+        test-mat (matrix test-mat-source)
+        res (dataset [:a :b :c] [[4 5 6]])]
+    (is (m/equals m (sel test-mat :filter-fn (fn [row] (= (first row) (second row))))))
+    (is (m/equals res (sel dataset3 :filter-fn (fn [row] (even? (nth row 0))))))))
 
 (defn group-on-test []
   (let [m (matrix [[1 0] [2 1]])]
@@ -584,3 +587,24 @@
                 table-column-names (map #(.getColumnName (.getModel table) %)
                                      (range (length column-names)))]
             (is (= column-names table-column-names)))))))))
+
+(deftest $order-test
+  (let [data (ds/dataset [:a :b :c]
+                         [{:a 1 :b 1 :c 4}
+                          {:a 2 :b 3 :c 3}
+                          {:a 2 :b 2 :c 2}
+                          {:a 3 :b 4 :c 1}])]
+    (testing "ascending order by single column"
+      (is (= (ds/dataset [:a :b :c]
+                         [{:a 3 :b 4 :c 1}
+                          {:a 2 :b 2 :c 2}
+                          {:a 2 :b 3 :c 3}
+                          {:a 1 :b 1 :c 4}])
+             ($order :c :asc data))))
+    (testing "descending order by multiple columns"
+      (is (= (ds/dataset [:a :b :c]
+                         [{:a 3 :b 4 :c 1}
+                          {:a 2 :b 3 :c 3}
+                          {:a 2 :b 2 :c 2}
+                          {:a 1 :b 1 :c 4}])
+             ($order [:a :b] :desc data))))))

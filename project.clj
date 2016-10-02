@@ -49,16 +49,12 @@
 	  
   :profiles {:dev {:resource-paths ["data"]}
              :debug {:debug true}
-             :uberjar {:aot :all
-                       :main incanter.main
-                       :dependencies [[reply "0.3.7" :exclusions [org.clojure/clojure]]
+             :uberjar {:dependencies [[reply "0.3.7" :exclusions [org.clojure/clojure]]
                                       [swingrepl "1.3.0"
                                        :exclusions [org.clojure/clojure org.clojure/clojure-contrib]]
                                       ]
                        }
              }  
-  
-  :main incanter.main
   
   :repl-options {:init-ns incanter.irepl
                  :resource-paths ["data"]
@@ -66,6 +62,9 @@
                          (set! *print-length* 500)
                          (use 'clojure.repl))
                  }
+  
+  :javac-options ["-target" "1.7" "-source" "1.7"]
+    
   :jvm-opts ["-Xmx1g" "-Djsse.enableSNIExtension=false"
              ~(str "-Dincanter.home=" (System/getProperty "user.dir"))]
   )
